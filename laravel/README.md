@@ -10,5 +10,9 @@ This directory is the parallel Laravel 12 replacement for the live Django applic
 - Student, subject and result schema with automatic grading
 - Subscription/payment/offline-upgrade schema
 - Interactive Alpine.js + Tailwind dashboard, result modal and subscription UI
+- Guardian/parent records, admissions, attendance and announcements
+- Fee invoicing, receipts, expenses and payroll
+- Class timetables and teacher allocation
+- Library lending, inventory, transport routes and staff leave
 
 The original Excel masters remain in `schoolresults/templates/excel/` until the PhpSpreadsheet exporter is verified byte-for-byte against them.
