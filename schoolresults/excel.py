@@ -12,7 +12,7 @@ MAPPING = {
  "nursery": {"template":"Nursery_section_template.xlsx", "start":13, "end":24, "grand":25, "size":"C27", "position":"C28", "average":"H27", "grade":"H28"},
 }
 def report_directory(student):
-    return Path(settings.MEDIA_ROOT) / "results" / safe_name(student.session) / student.term / safe_name(student.class_level)
+    return Path(settings.MEDIA_ROOT) / "results" / student.school.slug / safe_name(student.session) / student.term / safe_name(student.class_level)
 def generate_report_card(student):
     spec=MAPPING[student.section]; template=Path(__file__).resolve().parent / "templates" / "excel" / spec["template"]
     wb=load_workbook(template); ws=wb["Sheet1"]
@@ -29,13 +29,13 @@ def generate_report_card(student):
     out=out_dir / f"{safe_name(student.reg_no)}_{safe_name(student.full_name)}.xlsx"; wb.save(out)
     relative=out.relative_to(settings.MEDIA_ROOT).as_posix(); Student.objects.filter(pk=student.pk).update(compiled_report=relative); student.compiled_report.name=relative
     return out
-def compile_class(class_level, term=None, session=None):
-    students=compute_class_results(class_level, term, session)
+def compile_class(school, class_level, term=None, session=None):
+    students=compute_class_results(school, class_level, term, session)
     if not students: return None
     paths=[generate_report_card(s) for s in students]; first=students[0]
     out_dir=report_directory(first); zip_path=out_dir / f"{safe_name(class_level)}_{safe_name(first.term)}_{safe_name(first.session)}.zip"
     with ZipFile(zip_path,"w",ZIP_DEFLATED) as archive:
         for path in paths: archive.write(path, path.name)
     with zip_path.open("rb") as fh:
-        obj=Compilation(class_level=class_level,term=first.term,session=first.session); obj.zip_file.save(zip_path.name,File(fh),save=True)
+        obj=Compilation(school=school,class_level=class_level,term=first.term,session=first.session); obj.zip_file.save(zip_path.name,File(fh),save=True)
     return obj

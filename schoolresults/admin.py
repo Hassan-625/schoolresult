@@ -1,20 +1,33 @@
 from django.contrib import admin, messages
-from .models import Compilation, Result, Student, Subject
+from .models import (AttendanceRecord, CBTExam, ClassAssignment, Compilation, Expense, FeeRecord, OfflineUpgradeRequest, PayrollRecord, Result, ResultLock, School, SchoolMembership, Student, Subject, SubscriptionPayment)
 from .tasks import compile_class_task
 
-@admin.action(description="Compile selected students' classes in background")
-def compile_selected_classes(modeladmin, request, queryset):
-    groups=set(queryset.values_list("class_level","term","session"))
-    for class_level,term,session in groups: compile_class_task.delay(class_level,term,session)
-    modeladmin.message_user(request,f"Queued {len(groups)} class compilation job(s).",messages.SUCCESS)
+class TenantAdmin(admin.ModelAdmin):
+    def get_queryset(self,request):
+        qs=super().get_queryset(request)
+        if request.user.is_superuser: return qs
+        membership=request.user.school_memberships.filter(is_active=True).first()
+        return qs.filter(school=membership.school) if membership else qs.none()
+    def save_model(self,request,obj,form,change):
+        if hasattr(obj,"school_id") and not obj.school_id and not request.user.is_superuser: obj.school=request.user.school_memberships.filter(is_active=True).first().school
+        super().save_model(request,obj,form,change)
+
+@admin.action(description="Compile selected students' classes")
+def compile_selected(modeladmin,request,queryset):
+    groups=set(queryset.values_list("school_id","class_level","term","session"))
+    for school_id,class_level,term,session in groups: compile_class_task.delay(school_id,class_level,term,session)
+    modeladmin.message_user(request,f"Queued {len(groups)} compilation job(s).",messages.SUCCESS)
 @admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
-    list_display=("full_name","reg_no","class_level","term","session","average_score","position","class_size")
-    list_filter=("class_level","term","session"); search_fields=("first_name","last_name","reg_no"); actions=(compile_selected_classes,)
+class StudentAdmin(TenantAdmin):
+    list_display=("full_name","school","reg_no","class_level","average_score","position"); list_filter=("school","class_level","term","session"); actions=(compile_selected,)
 @admin.register(Result)
-class ResultAdmin(admin.ModelAdmin):
-    list_display=("student","subject","total","grade","subject_position","class_average"); list_filter=("student__class_level","subject")
+class ResultAdmin(TenantAdmin): list_display=("student","school","subject","total","grade","subject_position")
 @admin.register(Subject)
-class SubjectAdmin(admin.ModelAdmin): list_display=("name","section","display_order"); list_filter=("section",); ordering=("section","display_order")
+class SubjectAdmin(TenantAdmin): list_display=("name","school","section","display_order")
 @admin.register(Compilation)
-class CompilationAdmin(admin.ModelAdmin): list_display=("class_level","term","session","created_at","zip_file"); readonly_fields=("created_at",)
+class CompilationAdmin(TenantAdmin): list_display=("school","class_level","term","session","created_at")
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin): list_display=("name","tier","subscription_status","subscription_expires_at","student_count")
+@admin.register(SchoolMembership)
+class MembershipAdmin(TenantAdmin): list_display=("user","school","role","is_active")
+for model in [ClassAssignment,ResultLock,SubscriptionPayment,OfflineUpgradeRequest,FeeRecord,Expense,PayrollRecord,AttendanceRecord,CBTExam]: admin.site.register(model,TenantAdmin)

@@ -1,0 +1,1 @@
+{% extends 'schoolresults/base.html' %}{% block content %}<div class="form-card"><p class="eyebrow">Bank transfer / cash</p><h1>Request offline upgrade</h1><p>Submit payment details for one-click platform approval.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="button">Send request</button></form></div>{% endblock %}

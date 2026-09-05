@@ -10,3 +10,4 @@ tbody tr:hover{background:#f8fbff}
 .button:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(47,103,164,.22)}
 .fade-in{animation:fadeIn .45s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}.tier-card:hover{transform:translateY(-4px)}.pill{display:inline-flex;padding:5px 10px;border-radius:99px;background:#e8f1fb;color:#245b97;font-size:12px;font-weight:800;text-transform:uppercase}

@@ -16,8 +16,8 @@ def competition_positions(items, score):
     return positions
 
 @transaction.atomic
-def compute_class_results(class_level, term=None, session=None):
-    students = Student.objects.filter(class_level=class_level)
+def compute_class_results(school, class_level, term=None, session=None):
+    students = Student.objects.filter(school=school, class_level=class_level)
     if term: students = students.filter(term=term)
     if session: students = students.filter(session=session)
     students = list(students.prefetch_related("results__subject"))
