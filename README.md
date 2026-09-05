@@ -1,45 +1,42 @@
 # schoolresult
 
-Nursery and Primary School Result Management System built with Django 5.2, SQLite, OpenPyXL, Celery, Redis and django-celery-beat.
+Multi-tenant Nursery and Primary School Management SaaS built with Django 5.2, PostgreSQL/SQLite, OpenPyXL, Celery, Redis and django-celery-beat.
 
-## Windows setup (PowerShell)
+## SaaS architecture
 
-Only use the removal commands below while intentionally rebuilding a disposable development database.
+- Shared database tenancy with school-scoped students, subjects, results, compilations, finance, attendance, payroll and CBT records.
+- Global Django superusers operate the platform console at `/platform/`; school users receive a SchoolMembership role.
+- Roles: Proprietor, Headmaster/Principal, Accountant and Teacher. Teacher academic access is restricted by ClassAssignment.
+- Tiers are enforced server-side: Small (150 students), Mid (500), Premium (unlimited), with feature flags for broadsheets, SMS, fees, CBT, payroll, expenses and online payments.
+- Subscription webhooks: `/webhooks/paystack/` and `/webhooks/flutterwave/`. Configure provider secrets with environment variables.
+- Existing Excel templates remain immutable master files.
+
+## Safe setup
 
 ```powershell
-cd schoolresult
-Remove-Item .\db.sqlite3 -ErrorAction SilentlyContinue
-Get-ChildItem .\schoolresults\migrations\*.py | Where-Object Name -ne '__init__.py' | Remove-Item
-Get-ChildItem .\schoolresults\migrations\__pycache__ -ErrorAction SilentlyContinue | Remove-Item -Recurse
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python manage.py makemigrations schoolresults
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Do not delete `db.sqlite3` after real student/result data has been entered. Use normal migrations and backups.
+Do not delete `db.sqlite3` after real student/result data exists. Use migrations and backups.
 
 ## Compilation
 
 ```powershell
 python manage.py compute_results
 python manage.py compute_results "Basic 3"
+python manage.py compute_results "Basic 3" --school highflyers
 ```
 
-## Celery and Redis
-
-Start Redis (native, Docker, or WSL), then open separate terminals:
+## Celery
 
 ```powershell
 celery -A schoolresult worker -l info --pool=solo
 celery -A schoolresult beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
-Create end-of-term schedules in Admin > Periodic tasks. Choose task `schoolresults.tasks.compile_all_results_task` and attach a configurable clocked/crontab schedule; no date is hard-coded.
-
-## Initial subjects
-
-Create subjects in Admin using the names already printed in each workbook. The generator matches by subject name and display order controls screen ordering.
+Create end-of-term schedules in Admin > Periodic tasks. Choose `schoolresults.tasks.compile_all_results_task` and attach a configurable clocked/crontab schedule; no end-of-term date is hard-coded.
