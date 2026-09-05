@@ -1,0 +1,4 @@
+{% extends 'schoolresults/base.html' %}{% block title %}{{ class_level }} Results{% endblock %}{% block content %}
+<div class="page-head"><div><p class="eyebrow">Class compilation</p><h1>{{ class_level }}</h1></div><form method="post" action="{% url 'trigger_compilation' class_level %}">{% csrf_token %}<button class="button">Compile in background</button></form></div>
+<div class="table-wrap"><table><thead><tr><th>Position</th><th>Student</th><th>Total</th><th>Average</th><th>Grade</th><th>Class size</th></tr></thead><tbody>
+{% for student in students %}<tr><td>{{ student.position|default:'—' }}</td><td><a href="{% url 'student_detail' student.pk %}">{{ student.full_name }}</a></td><td>{{ student.total_score }}</td><td>{{ student.average_score }}</td><td>{{ student.overall_grade }}</td><td>{{ student.class_size }}</td></tr>{% empty %}<tr><td colspan="6">No students in this class.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

@@ -1,0 +1,4 @@
+{% extends 'schoolresults/base.html' %}{% block title %}Staff Dashboard{% endblock %}{% block content %}
+<div class="page-head"><div><p class="eyebrow">Staff area</p><h1>Dashboard</h1></div><a class="button" href="{% url 'add_result' %}">Enter result</a></div>
+<div class="stats"><article><strong>{{ student_count }}</strong><span>Students</span></article><article><strong>{{ result_count }}</strong><span>Subject results</span></article><article><strong>{{ compilations|length }}</strong><span>Recent compilations</span></article></div>
+<section class="panel"><h2>Recent compiled files</h2>{% include 'schoolresults/_compilation_table.html' with compilations=compilations %}</section>{% endblock %}

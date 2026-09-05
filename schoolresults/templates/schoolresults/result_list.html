@@ -1,0 +1,5 @@
+{% extends 'schoolresults/base.html' %}{% block title %}Results{% endblock %}{% block content %}
+<div class="page-head"><div><p class="eyebrow">Academic records</p><h1>Result entries</h1></div><a class="button" href="{% url 'add_result' %}">Add result</a></div>
+<div class="toolbar"><input class="table-search" data-target="results-table" type="search" placeholder="Search student or subject…"></div>
+<div class="table-wrap"><table id="results-table"><thead><tr><th>Student</th><th>Subject</th><th>CA 1</th><th>CA 2</th><th>Exam</th><th>Total</th><th>Grade</th></tr></thead><tbody>
+{% for result in results %}<tr><td><a href="{% url 'student_detail' result.student.pk %}">{{ result.student.full_name }}</a></td><td>{{ result.subject }}</td><td>{{ result.first_ca }}</td><td>{{ result.second_ca }}</td><td>{{ result.exam }}</td><td>{{ result.total }}</td><td><span class="grade grade-{{ result.grade }}">{{ result.grade }}</span></td></tr>{% empty %}<tr><td colspan="7">No results yet.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}
