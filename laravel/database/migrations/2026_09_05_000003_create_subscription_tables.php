@@ -1,0 +1,6 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration {public function up():void{
+ Schema::create('subscription_payments',function(Blueprint $t){$t->id();$t->foreignId('school_id')->constrained()->cascadeOnDelete();$t->string('provider');$t->string('reference')->unique();$t->enum('target_tier',['small','mid','premium']);$t->decimal('amount',12,2);$t->string('currency',5)->default('NGN');$t->enum('status',['pending','success','failed'])->default('pending');$t->timestamp('paid_at')->nullable();$t->json('metadata')->nullable();$t->timestamps();});
+ Schema::create('offline_upgrade_requests',function(Blueprint $t){$t->id();$t->foreignId('school_id')->constrained()->cascadeOnDelete();$t->foreignId('requested_by')->constrained('users')->restrictOnDelete();$t->enum('target_tier',['small','mid','premium']);$t->decimal('amount',12,2);$t->text('proof_details');$t->enum('status',['pending','approved','rejected'])->default('pending');$t->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();$t->timestamp('reviewed_at')->nullable();$t->timestamps();});
+ }public function down():void{Schema::dropIfExists('offline_upgrade_requests');Schema::dropIfExists('subscription_payments');}};
