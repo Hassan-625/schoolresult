@@ -1,6 +1,6 @@
 <?php
-use App\Http\Controllers\DashboardController;use App\Http\Controllers\PlatformController;use App\Http\Controllers\ResultController;use App\Http\Controllers\SubscriptionController;use Illuminate\Support\Facades\Route;
-Route::view('/','welcome')->name('home');
+use App\Http\Controllers\AuthController;use App\Http\Controllers\DashboardController;use App\Http\Controllers\PlatformController;use App\Http\Controllers\ResultController;use App\Http\Controllers\SubscriptionController;use Illuminate\Support\Facades\Route;
+Route::view('/','welcome')->name('home');Route::get('/login',[AuthController::class,'show'])->name('login');Route::post('/login',[AuthController::class,'login'])->name('login.attempt');Route::post('/logout',[AuthController::class,'logout'])->name('logout');
 Route::middleware(['auth','school'])->group(function(){
  Route::get('/dashboard',DashboardController::class)->name('dashboard');
  Route::get('/results',[ResultController::class,'index'])->middleware('permission:academics.read')->name('results.index');
