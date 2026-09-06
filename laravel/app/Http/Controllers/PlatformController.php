@@ -1,0 +1,7 @@
+<?php
+namespace App\Http\Controllers;use App\Models\OfflineUpgradeRequest;use App\Models\School;use App\Models\SubscriptionPayment;use Illuminate\Http\Request;use Illuminate\Support\Facades\DB;use Illuminate\View\View;
+class PlatformController {
+ public function index():View{return view('platform',['schools'=>School::withCount('students')->get(),'payments'=>SubscriptionPayment::with('school')->latest()->limit(50)->get(),'upgrades'=>OfflineUpgradeRequest::with('school')->where('status','pending')->get()]);}
+ public function update(Request $request,School $school){$data=$request->validate(['tier'=>['required','in:small,mid,premium'],'subscription_status'=>['required','in:trial,active,suspended,expired']]);$school->update($data);return back()->with('success','School updated.');}
+ public function approve(Request $request,OfflineUpgradeRequest $upgrade){DB::transaction(function()use($upgrade,$request){$upgrade->lockForUpdate();abort_unless($upgrade->status==='pending',409);$upgrade->update(['status'=>'approved','reviewed_by'=>$request->user()->id,'reviewed_at'=>now()]);$upgrade->school->update(['tier'=>$upgrade->target_tier,'subscription_status'=>'active','subscription_expires_at'=>max(now(),$upgrade->school->subscription_expires_at??now())->addYear()]);SubscriptionPayment::create(['school_id'=>$upgrade->school_id,'provider'=>'offline','reference'=>'offline-'.$upgrade->id,'target_tier'=>$upgrade->target_tier,'amount'=>$upgrade->amount,'status'=>'success','paid_at'=>now()]);});return back()->with('success','Upgrade approved.');}
+}

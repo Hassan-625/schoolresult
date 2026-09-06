@@ -18,14 +18,7 @@ class SchoolContextMiddleware:
     def __init__(self,get_response): self.get_response=get_response
     def __call__(self,request):
         request.school=None; request.membership=None
-        if request.user.is_authenticated and request.user.is_superuser:
-            from .models import School
-            selected=request.GET.get("school") or request.session.get("selected_school")
-            school=School.objects.filter(pk=selected).first() if selected else School.objects.order_by("name").first()
-            if school:
-                request.school=school
-                if request.GET.get("school"): request.session["selected_school"]=school.pk
-        elif request.user.is_authenticated:
+        if request.user.is_authenticated and not request.user.is_superuser:
             membership=request.user.school_memberships.filter(is_active=True).select_related("school").first()
             if membership: request.membership=membership; request.school=membership.school
         return self.get_response(request)
@@ -43,7 +36,7 @@ def permission_required(permission, feature=None):
         def wrapped(request,*args,**kwargs):
             if not request.user.is_authenticated: return redirect("login")
             if not has_permission(request,permission): raise PermissionDenied
-            if feature and not request.user.is_superuser and (not request.school or feature not in FEATURES[request.school.tier]): raise PermissionDenied("Your subscription tier does not include this feature.")
+            if feature and (not request.school or feature not in FEATURES[request.school.tier]): raise PermissionDenied("Your subscription tier does not include this feature.")
             return view(request,*args,**kwargs)
         return wrapped
     return decorator

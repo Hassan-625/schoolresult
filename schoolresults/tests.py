@@ -3,7 +3,6 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 from django.test import TestCase, override_settings
-from django.contrib.auth import get_user_model
 from openpyxl import load_workbook
 from .excel import compile_class
 from .models import Result, School, Student, Subject
@@ -37,13 +36,3 @@ class CompilationTests(TestCase):
                 compile_class(self.school,"Nursery 1"); student.refresh_from_db()
                 wb=load_workbook(student.compiled_report.path); ws=wb["Sheet1"]
                 self.assertEqual(ws["G13"].value,50); self.assertEqual(ws["C27"].value,1); self.assertEqual(ws["H28"].value,"D")
-
-@override_settings(STORAGES={"default":{"BACKEND":"django.core.files.storage.FileSystemStorage"},"staticfiles":{"BACKEND":"django.contrib.staticfiles.storage.StaticFilesStorage"}})
-class SuperAdminTenantNavigationTests(TestCase):
-    def setUp(self):
-        self.school=School.objects.get(slug="highflyers")
-        self.admin=get_user_model().objects.create_superuser("root","root@example.com","pass")
-        self.client.force_login(self.admin)
-    def test_tenant_pages_resolve_default_school(self):
-        for url in ("/students/","/results/","/results/add/","/compiled/"):
-            with self.subTest(url=url): self.assertEqual(self.client.get(url).status_code,200)

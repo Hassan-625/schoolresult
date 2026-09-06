@@ -32,12 +32,12 @@ def student_dashboard(request):
 @permission_required("students.read")
 def student_list(request):
     qs=Student.objects.filter(school=request.school)
-    if request.membership and request.membership.role=="teacher": qs=qs.filter(class_level__in=request.membership.class_assignments.values("class_level"))
+    if request.membership.role=="teacher": qs=qs.filter(class_level__in=request.membership.class_assignments.values("class_level"))
     return render(request,"schoolresults/student_list.html",{"students":qs})
 @permission_required("academics.read")
 def result_list(request):
     qs=Result.objects.filter(school=request.school).select_related("student","subject")
-    if request.membership and request.membership.role=="teacher": qs=qs.filter(student__class_level__in=request.membership.class_assignments.values("class_level"))
+    if request.membership.role=="teacher": qs=qs.filter(student__class_level__in=request.membership.class_assignments.values("class_level"))
     return render(request,"schoolresults/result_list.html",{"results":qs})
 @permission_required("academics.write")
 def add_result(request):
