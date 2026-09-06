@@ -1,0 +1,3 @@
+<?php
+namespace App\Services;use App\Models\Student;
+final class ResultAccessService {public function allowed(Student $student):bool{$school=$student->school;if(!$school->block_results_for_debt)return true;$balance=$student->feeInvoices()->whereIn('status',['unpaid','partial'])->get()->sum(fn($invoice)=>max(0,$invoice->amount_due-$invoice->payments->sum('amount')));return $balance<=$school->result_access_balance_limit;}public function assertAllowed(Student $student):void{abort_unless($this->allowed($student),402,'Result access is temporarily restricted because this account has an outstanding school-fee balance.');}}
