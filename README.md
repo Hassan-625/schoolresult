@@ -40,3 +40,8 @@ celery -A schoolresult beat -l info --scheduler django_celery_beat.schedulers:Da
 ```
 
 Create end-of-term schedules in Admin > Periodic tasks. Choose `schoolresults.tasks.compile_all_results_task` and attach a configurable clocked/crontab schedule; no end-of-term date is hard-coded.
+
+
+## Laravel production
+
+The live application is served from `laravel/`. Legacy Django tables remain read-only for safe migration and rollback.
